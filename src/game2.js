@@ -28,6 +28,10 @@ function resetReplay() {
 
 function newReplay() {
   dispatchClearStats();
+  window.tacBoardReplayTick = 0;
+  if (window.opener && !window.opener.closed) {
+    window.opener.postMessage({ type: 'TACBOARD_HAXBALL_REPLAY_RESET' }, 'https://chris-afk-hub.github.io');
+  }
   keepUpdating = true;
   loading = {
     recLength: 1,
@@ -6784,6 +6788,23 @@ O.prototype = {
         if (keepUpdating) {
           //if (Math.random() < 0.002) console.log(a,b);
           match[match.length - 1].gameTicks++;
+          window.tacBoardReplayTick = (window.tacBoardReplayTick || 0) + 1;
+
+if (window.opener && !window.opener.closed && window.tacBoardReplayTick % 60 === 1) {
+  var tacBoardFrame = {
+    timeSec: Math.floor((window.tacBoardReplayTick - 1) / 60),
+    ball: { x: d[0].a.x, y: d[0].a.y },
+    players: b.filter(function (p) { return p.H != null; }).map(function (p) {
+      return { name: p.w, team: p.ea.w, x: p.H.a.x, y: p.H.a.y };
+    })
+  };
+
+  window.opener.postMessage({
+    type: 'TACBOARD_HAXBALL_REPLAY_FRAME',
+    stadium: { width: st.Td, height: st.Sd },
+    frame: tacBoardFrame
+  }, 'https://chris-afk-hub.github.io');
+}
           if (d[0].a.x < (redGoalCord[0] / 3)) match[match.length - 1].thirds[0]++;
           else if (d[0].a.x < (blueGoalCord[0] / 3)) match[match.length - 1].thirds[1]++;
           else match[match.length - 1].thirds[2]++;
